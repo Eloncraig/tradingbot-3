@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: trading-bot-app
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: trading_bot_db
+          property: connectionString
+      - key: TELEGRAM_BOT_TOKEN
+        value: "7638550593:AAHsoXbK_w6EkxhLHnOfjsNcFFV5vtow-J8"
+      - key: TELEGRAM_CHAT_ID
+        value: "7578614215"
+      - key: DEBUG
+        value: "false"
+
+databases:
+  - name: trading_bot_db
+    plan: free
+    databaseName: trading_bot
+    user: trading_bot_user

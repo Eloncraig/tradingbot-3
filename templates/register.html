@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - TradingView AI Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://tradingview.com/favicon.ico">
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-gray-800 rounded-2xl p-8 shadow-2xl">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center mb-4">
+                    <img src="https://tradingview.com/favicon.ico" alt="TradingView" class="h-10 w-10 mr-3">
+                    <h1 class="text-3xl font-bold text-green-400">TradingView AI</h1>
+                </div>
+                <p class="text-gray-400">Join thousands earning daily profits</p>
+            </div>
+
+            {% if error %}
+            <div class="bg-red-500 text-white p-3 rounded-lg mb-6 text-center">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-6">
+                <div>
+                    <label class="block text-gray-300 mb-2">Username</label>
+                    <input type="text" name="username" placeholder="Choose a username" 
+                           class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-300 mb-2">Password</label>
+                    <input type="password" name="password" placeholder="Create a password" 
+                           class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                </div>
+
+                {% if ref_code %}
+                <div>
+                    <label class="block text-gray-300 mb-2">Referral Code</label>
+                    <input type="text" name="ref" value="{{ ref_code }}" 
+                           class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg" readonly>
+                    <p class="text-green-400 text-sm mt-1">🎉 You're invited! Get bonus rewards</p>
+                </div>
+                {% else %}
+                <div>
+                    <label class="block text-gray-300 mb-2">Referral Code (Optional)</label>
+                    <input type="text" name="ref" placeholder="Enter referral code for bonus" 
+                           class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+                {% endif %}
+
+                <button type="submit" 
+                        class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-4 rounded-lg transition duration-300 text-lg">
+                    🚀 Create Account
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-400">Already have an account? 
+                    <a href="/login" class="text-green-400 hover:text-green-300 font-semibold">Login here</a>
+                </p>
+            </div>
+
+            <!-- Benefits -->
+            <div class="mt-8 p-4 bg-gray-700 rounded-lg">
+                <h3 class="font-bold text-green-400 mb-3">✨ Why Join Us?</h3>
+                <ul class="text-sm text-gray-300 space-y-2">
+                    <li>✅ Up to 300% returns on investment</li>
+                    <li>✅ 24/7 AI-powered trading</li>
+                    <li>✅ $50 minimum deposit</li>
+                    <li>✅ Earn $50 per referral</li>
+                    <li>✅ Secure blockchain technology</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

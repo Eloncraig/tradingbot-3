@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TradingView AI Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img src="https://tradingview.com/favicon.ico" alt="TradingView" class="h-8 w-8">
+                    <span class="text-xl font-bold text-red-400">Admin Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-green-400">Welcome, Admin</span>
+                    <a href="/admin/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="bg-green-500 text-white p-4 rounded-lg mb-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <a href="#users-section" class="bg-blue-600 hover:bg-blue-700 p-4 rounded-lg text-center transition duration-200">
+                <div class="text-2xl font-bold">{{ total_users }}</div>
+                <div>Total Users</div>
+            </a>
+            <a href="#unlock-section" class="bg-green-600 hover:bg-green-700 p-4 rounded-lg text-center transition duration-200">
+                <div class="text-2xl font-bold">{{ unlocked_users }}</div>
+                <div>Unlocked Users</div>
+            </a>
+            <div class="bg-purple-600 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold">${{ "%.2f"|format(total_invested) }}</div>
+                <div>Total Invested</div>
+            </div>
+            <div class="bg-yellow-600 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold">${{ "%.2f"|format(total_balance) }}</div>
+                <div>Total Balance</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Users & Controls -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Recent Users Section -->
+                <div id="users-section" class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-2xl font-bold mb-4">👥 Recent Users</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-700">
+                                    <th class="text-left py-3 px-4">Username</th>
+                                    <th class="text-left py-3 px-4">Invested</th>
+                                    <th class="text-left py-3 px-4">Profit</th>
+                                    <th class="text-left py-3 px-4">Status</th>
+                                    <th class="text-left py-3 px-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr class="border-b border-gray-700 hover:bg-gray-700">
+                                    <td class="py-3 px-4">{{ user[1] }}</td>
+                                    <td class="py-3 px-4">${{ "%.2f"|format(user[2] or 0) }}</td>
+                                    <td class="py-3 px-4 {% if (user[3] or 0) >= 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                                        ${{ "%.2f"|format(user[3] or 0) }}
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="{% if user[5] %}bg-green-500{% else %}bg-red-500{% endif %} text-white px-2 py-1 rounded text-sm">
+                                            {{ 'Unlocked' if user[5] else 'Locked' }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <button onclick="openUserChat({{ user[0] }}, '{{ user[1] }}')" 
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm mr-2">
+                                            Chat
+                                        </button>
+                                        <button onclick="deleteUser({{ user[0] }}, '{{ user[1] }}')" 
+                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Unlock Code Generator -->
+                <div id="unlock-section" class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-2xl font-bold mb-4">🔓 Generate Unlock Codes</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="font-bold mb-2">Quick Generate</h3>
+                            <div class="space-y-2">
+                                <button onclick="generateCode(50)" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded">
+                                    $50 Code (Starter)
+                                </button>
+                                <button onclick="generateCode(100)" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded">
+                                    $100 Code (Bronze)
+                                </button>
+                                <button onclick="generateCode(200)" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded">
+                                    $200 Code (Silver)
+                                </button>
+                                <button onclick="generateCode(500)" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded">
+                                    $500 Code (Gold)
+                                </button>
+                                <button onclick="generateCode(1000)" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 rounded">
+                                    $1000 Code (VIP)
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="font-bold mb-2">Custom Amount</h3>
+                            <div class="flex space-x-2">
+                                <input type="number" id="customAmount" placeholder="Amount" 
+                                       class="flex-1 p-2 bg-gray-600 rounded text-white" min="50" step="10">
+                                <button onclick="generateCustomCode()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                                    Generate
+                                </button>
+                            </div>
+                            <div id="codeResult" class="mt-2 p-2 bg-gray-800 rounded hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Notifications & Chat -->
+            <div class="space-y-6">
+                <!-- Notifications -->
+                <div class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-2xl font-bold mb-4">🔔 Notifications</h2>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        {% for notif in notifications %}
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-bold text-blue-400">{{ notif[2] }}</span>
+                                <span class="text-xs text-gray-400">{{ notif[5] }}</span>
+                            </div>
+                            <div class="text-sm">{{ notif[3] }}</div>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-xs bg-yellow-500 text-white px-2 py-1 rounded">{{ notif[4] }}</span>
+                                <button onclick="markNotificationRead({{ notif[0] }})" class="text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded">
+                                    Mark Read
+                                </button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-gray-400 py-4">No new notifications</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Recent Messages -->
+                <div class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-2xl font-bold mb-4">💬 Recent Messages</h2>
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        {% for msg in recent_messages %}
+                        <div class="bg-gray-700 p-3 rounded-lg cursor-pointer hover:bg-gray-600"
+                             onclick="openUserChat({{ msg[0] }}, '{{ msg[1] }}')">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-bold text-green-400">{{ msg[1] }}</span>
+                                <span class="text-xs text-gray-400">{{ msg[3] }}</span>
+                            </div>
+                            <div class="text-sm truncate">{{ msg[2] }}</div>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-gray-400 py-4">No recent messages</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- System Controls -->
+                <div class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-2xl font-bold mb-4">⚙️ System Controls</h2>
+                    <div class="space-y-3">
+                        <a href="/admin/simulate_live" class="block w-full bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded text-center transition duration-200">
+                            Simulate Live Trading
+                        </a>
+                        <button onclick="clearAllNotifications()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded transition duration-200">
+                            Clear All Notifications
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Chat Modal -->
+    <div id="chatModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-gray-800 rounded-2xl w-full max-w-2xl">
+                <div class="p-6 border-b border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-xl font-bold" id="chatUserName">Chat with User</h3>
+                        <button onclick="closeChatModal()" class="text-gray-400 hover:text-white">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="chatMessages" class="h-64 overflow-y-auto mb-4 space-y-3">
+                        <!-- Messages will be loaded here -->
+                    </div>
+                    <div class="flex space-x-2">
+                        <input type="text" id="chatMessageInput" 
+                               placeholder="Type your message..." 
+                               class="flex-1 p-3 bg-gray-700 rounded text-white">
+                        <button onclick="sendAdminMessage()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded">
+                            Send
+                        </button>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-bold mb-2">Quick Actions:</h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="sendUnlockCode(50)" class="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded text-sm">
+                                Send $50 Code
+                            </button>
+                            <button onclick="sendUnlockCode(100)" class="bg-orange-500 hover:bg-orange-600 text-white py-2 rounded text-sm">
+                                Send $100 Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChatUserId = null;
+        let currentChatUsername = null;
+
+        // Generate unlock code
+        async function generateCode(amount) {
+            try {
+                const response = await fetch('/admin/generate_code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `amount=${amount}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const resultDiv = document.getElementById('codeResult');
+                    resultDiv.className = 'mt-2 p-3 bg-green-900 text-green-400 rounded font-mono text-center';
+                    resultDiv.innerHTML = `✅ Generated: ${data.code} for $${data.amount}`;
+                    resultDiv.classList.remove('hidden');
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(data.code);
+                    setTimeout(() => {
+                        alert(`Code ${data.code} copied to clipboard!`);
+                    }, 100);
+                } else {
+                    alert('Error generating code: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error generating code');
+            }
+        }
+
+        async function generateCustomCode() {
+            const amount = document.getElementById('customAmount').value;
+            if (!amount || amount < 50) {
+                alert('Please enter a valid amount (minimum $50)');
+                return;
+            }
+            await generateCode(parseFloat(amount));
+        }
+
+        // User management
+        async function deleteUser(userId, username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/delete_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `user_id=${userId}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error deleting user: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error deleting user');
+            }
+        }
+
+        // Chat functionality
+        function openUserChat(userId, username) {
+            currentChatUserId = userId;
+            currentChatUsername = username;
+            
+            document.getElementById('chatUserName').textContent = `Chat with ${username}`;
+            document.getElementById('chatModal').classList.remove('hidden');
+            
+            loadUserMessages(userId);
+        }
+
+        function closeChatModal() {
+            document.getElementById('chatModal').classList.add('hidden');
+            currentChatUserId = null;
+            currentChatUsername = null;
+        }
+
+        async function loadUserMessages(userId) {
+            try {
+                const response = await fetch(`/admin/get_user_messages?user_id=${userId}`);
+                const data = await response.json();
+                
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = '';
+                
+                data.messages.forEach(msg => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = msg.is_admin ? 
+                        'bg-blue-900 bg-opacity-50 p-3 rounded-lg' : 
+                        'bg-gray-700 p-3 rounded-lg';
+                    
+                    messageDiv.innerHTML = `
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-bold ${msg.is_admin ? 'text-blue-400' : 'text-green-400'}">
+                                ${msg.is_admin ? 'You' : msg.username}
+                            </span>
+                            <span class="text-xs text-gray-400">${msg.timestamp}</span>
+                        </div>
+                        <div class="text-white">${msg.message}</div>
+                    `;
+                    messagesContainer.appendChild(messageDiv);
+                });
+                
+                // Scroll to bottom
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        async function sendAdminMessage() {
+            if (!currentChatUserId) return;
+            
+            const messageInput = document.getElementById('chatMessageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+
+            try {
+                const response = await fetch('/admin/send_message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `user_id=${currentChatUserId}&message=${encodeURIComponent(message)}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageInput.value = '';
+                    loadUserMessages(currentChatUserId);
+                } else {
+                    alert('Error sending message: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error sending message');
+            }
+        }
+
+        async function sendUnlockCode(amount) {
+            if (!currentChatUserId) return;
+
+            try {
+                const response = await fetch('/admin/send_unlock_code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `user_id=${currentChatUserId}&amount=${amount}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`Unlock code sent to user: ${data.code}`);
+                    loadUserMessages(currentChatUserId);
+                } else {
+                    alert('Error sending unlock code: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error sending unlock code');
+            }
+        }
+
+        // Notification management
+        async function markNotificationRead(notificationId) {
+            try {
+                const response = await fetch('/admin/mark_notification_read', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `notification_id=${notificationId}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Error marking notification as read');
+            }
+        }
+
+        async function clearAllNotifications() {
+            // This would require a new endpoint to clear all notifications
+            alert('This feature would clear all notifications (endpoint needed)');
+        }
+
+        // Auto-refresh notifications
+        setInterval(async () => {
+            try {
+                const response = await fetch('/admin/get_notifications');
+                const data = await response.json();
+                
+                if (data.notifications.length > 0 && !document.getElementById('chatModal').classList.contains('hidden')) {
+                    // Refresh the page if there are new notifications and chat is not open
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error refreshing notifications:', error);
+            }
+        }, 10000); // Refresh every 10 seconds
+
+        // Handle Enter key in chat
+        document.getElementById('chatMessageInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendAdminMessage();
+            }
+        });
+    </script>
+</body>
+</html>

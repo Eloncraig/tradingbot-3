@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - TradingView AI Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://tradingview.com/favicon.ico">
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-gray-800 rounded-2xl p-8 shadow-2xl">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center mb-4">
+                    <img src="https://tradingview.com/favicon.ico" alt="TradingView" class="h-10 w-10 mr-3">
+                    <h1 class="text-3xl font-bold text-green-400">TradingView AI</h1>
+                </div>
+                <p class="text-gray-400">Welcome back! Continue your trading journey</p>
+            </div>
+
+            {% if error %}
+            <div class="bg-red-500 text-white p-3 rounded-lg mb-6 text-center">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-6">
+                <div>
+                    <label class="block text-gray-300 mb-2">Username</label>
+                    <input type="text" name="username" placeholder="Enter your username" 
+                           class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                </div>
+
+                <div>
+                    <label class="block text-gray-300 mb-2">Password</label>
+                    <input type="password" name="password" placeholder="Enter your password" 
+                           class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-4 rounded-lg transition duration-300 text-lg">
+                    🔐 Login to Dashboard
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-400">Don't have an account? 
+                    <a href="/register" class="text-green-400 hover:text-green-300 font-semibold">Register here</a>
+                </p>
+            </div>
+
+            <!-- Security Note -->
+            <div class="mt-6 p-3 bg-yellow-500 bg-opacity-20 rounded-lg text-center">
+                <p class="text-yellow-400 text-sm">🔒 Your account is secured with advanced encryption</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

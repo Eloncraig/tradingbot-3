@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TradingView AI Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="https://tradingview.com/favicon.ico">
+    <style>
+        .profit-glow {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+        .live-trade {
+            animation: pulse 2s infinite;
+        }
+        .loss-trade {
+            animation: pulseRed 2s infinite;
+        }
+        .unlock-glow {
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.5);
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%);
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        @keyframes pulseRed {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .unlock-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .code-input {
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        .status-badge {
+            animation: statusPulse 3s infinite;
+        }
+        @keyframes statusPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .header-spacing {
+            margin-bottom: 2rem;
+        }
+        .section-spacing {
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="container mx-auto px-4 py-4"> <!-- Increased padding -->
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <img src="https://tradingview.com/favicon.ico" alt="TradingView" class="h-8 w-8">
+                    <span class="text-xl font-bold text-green-400">TradingView AI</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <span class="text-green-400 px-3 py-2 bg-gray-700 rounded-lg">Welcome, {{ user.username }}</span> <!-- Added styling -->
+                    <a href="/chat" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-200">💬 Support</a>
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="bg-green-500 text-white p-4 rounded-lg mb-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Bot Status Banner -->
+        <div class="header-spacing">
+            {% if user.bot_unlocked %}
+            <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-center">
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="text-4xl">🔓</div>
+                    <div>
+                        <div class="text-2xl font-bold">Trading Bot ACTIVATED</div>
+                        <div class="text-lg">You can now start trading with our AI algorithm!</div>
+                    </div>
+                    <div class="bg-white text-green-600 px-4 py-2 rounded-full font-bold status-badge">
+                        UNLOCKED
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl p-6 text-center">
+                <div class="flex items-center justify-center space-x-3">
+                    <div class="text-4xl">🔒</div>
+                    <div>
+                        <div class="text-2xl font-bold">Trading Bot LOCKED</div>
+                        <div class="text-lg">Deposit and enter unlock code to start trading</div>
+                    </div>
+                    <div class="bg-white text-red-600 px-4 py-2 rounded-full font-bold">
+                        LOCKED
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ALWAYS VISIBLE UNLOCK CODE SECTION -->
+        <div class="unlock-glow rounded-2xl p-8 mb-8 border-2 border-purple-400 section-spacing">
+            <div class="text-center mb-6">
+                <div class="text-4xl mb-4">🚀</div>
+                <h2 class="text-3xl font-bold mb-2">Activate Your Trading Bot</h2>
+                <p class="text-xl text-purple-200 mb-4">Enter the unique unlock code sent to you by our support team</p>
+                <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg max-w-2xl mx-auto">
+                    <div class="font-bold mb-2">💡 How to get your unlock code:</div>
+                    <ol class="text-left text-sm space-y-1">
+                        <li>1. Make a deposit of $50 or more</li>
+                        <li>2. Contact support in the chat to verify your payment</li>
+                        <li>3. Receive your unique unlock code via chat message</li>
+                        <li>4. Enter the code below to activate trading</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <form id="unlockForm" class="max-w-2xl mx-auto space-y-6">
+                <div class="bg-black bg-opacity-50 rounded-xl p-6">
+                    <label class="block text-lg font-semibold mb-4 text-center">Enter Your Unlock Code</label>
+                    <div class="flex flex-col sm:flex-row gap-4 items-center">
+                        <input type="text"
+                               id="unlockCode"
+                               placeholder="TRADEXXXXXX"
+                               class="flex-1 p-4 bg-white text-gray-900 rounded-lg font-mono text-center code-input text-xl"
+                               maxlength="12"
+                               required
+                               pattern="[A-Z0-9]{6,12}"
+                               title="Enter your 6-12 character unlock code">
+                        <button type="submit"
+                                class="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-200 transform hover:scale-105">
+                            🔓 Activate Bot
+                        </button>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="/chat" class="text-blue-300 hover:text-blue-200 underline">
+                            💬 Need help? Contact support for your code
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <a href="/deposit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-center transition duration-200">
+                    💰 Make Deposit
+                </a>
+                <a href="/chat" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg text-center transition duration-200">
+                    💬 Contact Support
+                </a>
+            </div>
+        </div>
+
+        <!-- Header Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 section-spacing">
+            <div class="bg-gray-800 p-6 rounded-2xl text-center profit-glow">
+                <div class="text-3xl font-bold text-green-400">${{ "%.2f"|format(user.balance) }}</div>
+                <div class="text-gray-300">Current Balance</div>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-2xl text-center">
+                <div class="text-3xl font-bold {% if user.profits >= 0 %}text-blue-400{% else %}text-red-400{% endif %}">
+                    ${{ "%.2f"|format(user.profits) }}
+                </div>
+                <div class="text-gray-300">Total Profits</div>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-2xl text-center">
+                <div class="text-3xl font-bold text-yellow-400">${{ "%.2f"|format(user.invested) }}</div>
+                <div class="text-gray-300">Total Invested</div>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-2xl text-center">
+                <div class="text-xl font-bold {{ tier_color }}">{{ tier_name }} Tier</div>
+                <div class="text-gray-300">Up to {{ max_profit }} Returns</div>
+            </div>
+        </div>
+
+        <!-- Trading Controls -->
+        <div class="bg-gray-800 rounded-2xl p-6 mb-8 section-spacing">
+            <h2 class="text-2xl font-bold mb-4">Trading Controls</h2>
+            <div class="flex flex-wrap gap-4">
+                <a href="/deposit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                    💰 Deposit Funds
+                </a>
+                <a href="/withdraw" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200">
+                    💸 Withdraw Earnings
+                </a>
+                {% if user.bot_unlocked %}
+                    <button onclick="startManualTrade()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105">
+                        🤖 Manual Trade
+                    </button>
+                    <button onclick="startAutoTrading()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105">
+                        ⚡ Auto Trade
+                    </button>
+                {% else %}
+                    <div class="bg-red-500 text-white font-bold py-3 px-6 rounded-lg opacity-75">
+                        🔒 Manual Trade
+                    </div>
+                    <div class="bg-red-500 text-white font-bold py-3 px-6 rounded-lg opacity-75">
+                        🔒 Auto Trade
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Live Trading Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 section-spacing">
+            <!-- Live Chart -->
+            <div class="lg:col-span-2 bg-gray-800 rounded-2xl p-6">
+                <h2 class="text-2xl font-bold mb-4">
+                    {% if user.bot_unlocked %}
+                        📈 Your Live Trading Performance
+                    {% else %}
+                        📈 Potential Trading Performance
+                    {% endif %}
+                </h2>
+                <canvas id="liveChart" height="250"></canvas>
+            </div>
+            
+            <!-- Live Trades & Info -->
+            <div class="space-y-6">
+                <!-- Live Trades -->
+                <div class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">🔥 Live Trades Happening Now</h2>
+                    <div class="space-y-3" id="liveTradesContainer">
+                        <!-- Dynamic content will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Investment Tiers -->
+                <div class="bg-gray-800 rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4">💰 Investment Tiers</h2>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center p-3 bg-green-900 bg-opacity-50 rounded-lg border-l-4 border-green-400">
+                            <div>
+                                <div class="font-bold">Starter</div>
+                                <div class="text-xs text-gray-300">Basic Access</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold">$50+</div>
+                                <div class="text-green-400">100% Returns</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-orange-900 bg-opacity-50 rounded-lg border-l-4 border-orange-400">
+                            <div>
+                                <div class="font-bold">Bronze</div>
+                                <div class="text-xs text-gray-300">Enhanced AI</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold">$100+</div>
+                                <div class="text-orange-400">150% Returns</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-600 rounded-lg border-l-4 border-gray-400">
+                            <div>
+                                <div class="font-bold">Silver</div>
+                                <div class="text-xs text-gray-300">Premium Signals</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold">$200+</div>
+                                <div class="text-gray-300">200% Returns</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-yellow-900 bg-opacity-50 rounded-lg border-l-4 border-yellow-400">
+                            <div>
+                                <div class="font-bold">Gold</div>
+                                <div class="text-xs text-gray-300">VIP Access</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold">$500+</div>
+                                <div class="text-yellow-400">250% Returns</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-purple-900 bg-opacity-50 rounded-lg border-l-4 border-purple-400">
+                            <div>
+                                <div class="font-bold">VIP</div>
+                                <div class="text-xs text-gray-300">Max Profits</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold">$1000+</div>
+                                <div class="text-purple-400">300% Returns</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Referral Section -->
+        <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-6 mb-8 section-spacing">
+            <h2 class="text-2xl font-bold mb-4">🎯 Earn More With Referrals</h2>
+            <p class="mb-4 text-lg">Share your referral code and earn $50 for every friend who joins and deposits!</p>
+            <div class="flex flex-col sm:flex-row gap-4 items-center">
+                <div class="bg-white text-gray-900 px-4 py-3 rounded-lg font-mono flex-1 text-center text-xl">
+                    {{ user.referral_code }}
+                </div>
+                <button onclick="copyReferralCode()" class="bg-white text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-200">
+                    Copy Code
+                </button>
+                <a href="/register?ref={{ user.referral_code }}" class="bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 transition duration-200">
+                    Copy Link
+                </a>
+            </div>
+        </div>
+
+        <!-- Trade History -->
+        <div class="bg-gray-800 rounded-2xl p-6 section-spacing">
+            <h2 class="text-2xl font-bold mb-4">
+                {% if user.bot_unlocked %}
+                    📊 Your Trade History
+                {% else %}
+                    📊 How Trading Works
+                {% endif %}
+            </h2>
+            {% if trades and user.bot_unlocked %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="text-left py-3 px-4">Amount</th>
+                            <th class="text-left py-3 px-4">Profit/Loss</th>
+                            <th class="text-left py-3 px-4">Date</th>
+                            <th class="text-left py-3 px-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trade in trades %}
+                            <tr class="border-b border-gray-700 hover:bg-gray-700">
+                                <td class="py-3 px-4">${{ "%.2f"|format(trade[0]) }}</td>
+                                <td class="py-3 px-4 {% if trade[2] == 'profit' %}text-green-400{% else %}text-red-400{% endif %}">
+                                    {% if trade[2] == 'profit' %}+{% else %}-{% endif %}${{ "%.2f"|format(trade[1]) }}
+                                </td>
+                                <td class="py-3 px-4">{{ trade[3] }}</td>
+                                <td class="py-3 px-4">
+                                    <span class="{% if trade[2] == 'profit' %}bg-green-500{% else %}bg-red-500{% endif %} text-white px-2 py-1 rounded text-sm">
+                                        {{ trade[2]|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif user.bot_unlocked %}
+            <div class="text-center py-8">
+                <div class="text-gray-400 text-lg mb-4">No trades yet. Start your first trade!</div>
+                <button onclick="startManualTrade()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-lg transition duration-200">
+                    Make Your First Trade
+                </button>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <div class="text-gray-400 text-lg mb-4">Unlock the bot to see your trading history here</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-300">
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <div class="font-bold text-green-400 mb-2">Step 1: Deposit</div>
+                        <p>Make a minimum deposit of $50 to qualify for trading</p>
+                    </div>
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <div class="font-bold text-blue-400 mb-2">Step 2: Get Code</div>
+                        <p>Receive your unique unlock code from support after payment verification</p>
+                    </div>
+                    <div class="bg-gray-700 p-4 rounded-lg">
+                        <div class="font-bold text-purple-400 mb-2">Step 3: Start Trading</div>
+                        <p>Enter your code above to activate the AI trading algorithm</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Unlock Bot Form
+        document.getElementById('unlockForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const unlockCode = document.getElementById('unlockCode').value.trim().toUpperCase();
+            const submitButton = this.querySelector('button[type="submit"]');
+            
+            if (!unlockCode) {
+                alert('Please enter an unlock code');
+                return;
+            }
+
+            // Validate code format
+            if (!/^[A-Z0-9]{6,12}$/.test(unlockCode)) {
+                alert('Please enter a valid unlock code (6-12 characters, letters and numbers only)');
+                return;
+            }
+
+            // Show loading state
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '🔄 Activating...';
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch('/unlock_bot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `unlock_code=${unlockCode}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success animation
+                    submitButton.innerHTML = '✅ Activated!';
+                    submitButton.className = 'bg-green-500 text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-200';
+
+                    setTimeout(() => {
+                        alert(`🎉 ${data.message}`);
+                        location.reload();
+                    }, 1000);
+                } else {
+                    submitButton.innerHTML = originalText;
+                    submitButton.disabled = false;
+                    alert(`❌ ${data.error}`);
+                }
+            } catch (error) {
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+                alert('❌ Error unlocking bot. Please try again.');
+            }
+        });
+
+        // Auto-format unlock code input
+        document.getElementById('unlockCode')?.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+
+        // Initialize Live Chart
+        const ctx = document.getElementById('liveChart').getContext('2d');
+        let liveChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Portfolio Value ($)',
+                    data: [],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#fff',
+                            font: { size: 14 }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#fff' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#fff' }
+                    }
+                }
+            }
+        });
+
+        // Simulate live chart updates
+        function updateLiveChart() {
+            fetch('/api/live_chart')
+                .then(response => response.json())
+                .then(data => {
+                    liveChart.data.labels = data.labels;
+                    liveChart.data.datasets[0].data = data.data;
+                    liveChart.update('active');
+                })
+                .catch(error => {
+                    console.error('Error fetching chart data:', error);
+                    // Fallback: Generate random data
+                    const newLabel = new Date().toLocaleTimeString();
+                    const newData = Math.random() * 500 + 100;
+                    
+                    if (liveChart.data.labels.length > 15) {
+                        liveChart.data.labels.shift();
+                        liveChart.data.datasets[0].data.shift();
+                    }
+                    
+                    liveChart.data.labels.push(newLabel);
+                    liveChart.data.datasets[0].data.push(newData);
+                    liveChart.update('active');
+                });
+        }
+
+        // Update live trades
+        function updateLiveTrades() {
+            const trades = [
+                { pair: "BTC/USD", action: "BUY", profit: Math.random() > 0.3 ? Math.random() * 500 + 50 : -(Math.random() * 100 + 20), time: "Just now" },
+                { pair: "ETH/USD", action: Math.random() > 0.5 ? "BUY" : "SELL", profit: Math.random() > 0.3 ? Math.random() * 300 + 30 : -(Math.random() * 80 + 15), time: "2 min ago" },
+                { pair: "XRP/USD", action: "BUY", profit: Math.random() > 0.3 ? Math.random() * 200 + 20 : -(Math.random() * 60 + 10), time: "5 min ago" },
+                { pair: "ADA/USD", action: "BUY", profit: Math.random() > 0.3 ? Math.random() * 150 + 15 : -(Math.random() * 40 + 5), time: "8 min ago" }
+            ];
+            
+            const container = document.getElementById('liveTradesContainer');
+            container.innerHTML = '';
+            
+            trades.forEach(trade => {
+                const isProfit = trade.profit > 0;
+                const tradeDiv = document.createElement('div');
+                tradeDiv.className = `p-3 rounded-lg ${isProfit ? 'bg-green-900 bg-opacity-50 live-trade' : 'bg-red-900 bg-opacity-50 loss-trade'}`;
+                tradeDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold">${trade.pair}</span>
+                            <span class="text-xs px-2 py-1 rounded ${trade.action === 'BUY' ? 'bg-green-500' : 'bg-red-500'}">${trade.action}</span>
+                        </div>
+                        <span class="${isProfit ? 'text-green-400' : 'text-red-400'} font-bold">
+                            ${isProfit ? '+' : '-'}$${Math.abs(trade.profit).toFixed(2)}
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-300 mt-1">${trade.time}</div>
+                `;
+                container.appendChild(tradeDiv);
+            });
+        }
+
+        // Update chart every 3 seconds
+        setInterval(updateLiveChart, 3000);
+        setInterval(updateLiveTrades, 5000);
+        updateLiveChart();
+        updateLiveTrades();
+
+        // Trading Functions
+        async function startManualTrade() {
+            const amount = prompt('Enter trade amount ($):');
+            if (!amount || isNaN(amount) || amount < 10) {
+                alert('Please enter a valid amount (minimum $10)');
+                return;
+            }
+
+            try {
+                const response = await fetch('/trade', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `amount=${amount}`
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tradeType = data.trade_type === 'profit' ? 'Profit' : 'Loss';
+                    const emoji = data.trade_type === 'profit' ? '🟢' : '🔴';
+                    alert(`${emoji} Trade ${tradeType}!\n${tradeType}: $${Math.abs(data.profit).toFixed(2)}`);
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Trading failed. Please try again.');
+            }
+        }
+
+        async function startAutoTrading() {
+            if (!confirm('Start automated trading? Our AI will execute multiple trades for maximum profits!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/auto_trade', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`🤖 Auto Trading Completed!\n${data.trades_count} trades executed\nProfitable: ${data.profitable_trades}, Losses: ${data.losing_trades}\nTotal: $${data.total_profit.toFixed(2)}`);
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Auto trading failed. Please try again.');
+            }
+        }
+
+        function copyReferralCode() {
+            navigator.clipboard.writeText('{{ user.referral_code }}').then(() => {
+                alert('Referral code copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

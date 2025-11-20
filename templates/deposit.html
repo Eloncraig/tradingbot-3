@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit - TradingView AI Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto p-6 max-w-4xl">
+        <!-- Navigation -->
+        <nav class="flex justify-between items-center mb-8">
+            <div class="flex items-center space-x-3">
+                <img src="https://tradingview.com/favicon.ico" alt="TradingView" class="h-8 w-8">
+                <span class="text-xl font-bold text-green-400">Deposit & Unlock Bot</span>
+            </div>
+            <a href="/dashboard" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Back to Dashboard</a>
+        </nav>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="bg-red-500 text-white p-4 rounded-lg mb-6">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if success %}
+        <!-- Success Section -->
+        <div class="bg-green-900 border border-green-600 rounded-2xl p-8 mb-8">
+            <div class="text-center">
+                <div class="text-3xl text-green-400 font-bold mb-4">✅ Payment Instructions</div>
+                <p class="text-xl mb-6">Send <span class="font-bold">${{ amount }}</span> in <span class="font-bold">{{ crypto_type|upper }}</span> to unlock the trading bot</p>
+                
+                <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                    <div class="text-sm text-gray-400 mb-2">Send to this {{ crypto_type|upper }} address:</div>
+                    <div class="font-mono text-lg break-all bg-black p-4 rounded">{{ wallet }}</div>
+                </div>
+
+                <div class="flex justify-center mb-6">
+                    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="border-4 border-white rounded-lg w-64 h-64">
+                </div>
+
+                <p class="text-yellow-400 text-sm mb-6">After sending the payment, contact support in the chat to receive your unlock code!</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/chat" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg">
+                        💬 Contact Support
+                    </a>
+                    <a href="/dashboard" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-lg">
+                        🏠 Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Web3 Wallet Section -->
+        <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 mb-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold mb-4">🔗 Connect Web3 Wallet</h2>
+                <p class="text-xl mb-6">Connect your wallet for instant payments and automatic verification</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+                    <button onclick="connectMetaMask()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-200">
+                        🦊 MetaMask
+                    </button>
+                    <button onclick="connectWalletConnect()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-200">
+                        🔗 WalletConnect
+                    </button>
+                </div>
+                
+                <div id="walletInfo" class="hidden bg-black bg-opacity-50 rounded-xl p-4 mt-4">
+                    <div class="font-mono text-sm break-all" id="connectedWallet"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Web3 Payment Section -->
+            <div class="bg-gray-800 rounded-2xl p-6">
+                <h2 class="text-2xl font-bold mb-6">💳 Web3 Instant Payment</h2>
+                
+                <form id="web3PaymentForm" class="space-y-6">
+                    <div>
+                        <label class="block text-lg font-semibold mb-2">Payment Amount ($)</label>
+                        <input type="number" id="web3Amount" placeholder="Enter amount (min $50)"
+                               min="50" step="10" required
+                               class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg focus:border-green-500">
+                        <p class="text-sm text-gray-400 mt-2">Minimum: $50 to unlock trading</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-lg font-semibold mb-2">Select Cryptocurrency</label>
+                        <select id="web3CryptoType" required
+                                class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg focus:border-green-500">
+                            <option value="ethereum">Ethereum (ETH) - Recommended</option>
+                            <option value="solana">Solana (SOL)</option>
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="tron">Tron (TRX)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="web3PayButton" 
+                            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-lg text-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        🔓 Pay with Web3 Wallet
+                    </button>
+                </form>
+
+                <div id="paymentStatus" class="mt-4 hidden"></div>
+            </div>
+
+            <!-- Traditional Deposit Section -->
+            <div class="bg-gray-800 rounded-2xl p-6">
+                <h2 class="text-2xl font-bold mb-6">🏦 Traditional Deposit</h2>
+                
+                <form method="POST" class="space-y-6">
+                    <div>
+                        <label class="block text-lg font-semibold mb-2">Deposit Amount ($)</label>
+                        <input type="number" name="amount" placeholder="Enter amount (min $50)"
+                               min="50" step="10" required
+                               class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg focus:border-green-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-lg font-semibold mb-2">Select Cryptocurrency</label>
+                        <select name="crypto_type" required
+                                class="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg focus:border-green-500">
+                            <option value="ethereum">Ethereum (ETH)</option>
+                            <option value="solana">Solana (SOL)</option>
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="tron">Tron (TRX)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-lg text-lg transition duration-200">
+                        📧 Get Deposit Address
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Wallet Addresses -->
+        <div class="bg-gray-800 rounded-2xl p-6 mt-8">
+            <h2 class="text-2xl font-bold mb-6">💰 Our Wallet Addresses</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for crypto, address in wallets.items() %}
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-lg">{{ crypto|upper }}</span>
+                        <span class="bg-blue-500 text-white px-2 py-1 rounded text-sm">Active</span>
+                    </div>
+                    <div class="font-mono text-sm break-all bg-black p-2 rounded mb-2">{{ address }}</div>
+                    <div class="text-xs text-gray-400">
+                        {% if crypto == 'ethereum' %}ERC-20 Network | ETH & USDT{% endif %}
+                        {% if crypto == 'solana' %}Solana Network | SOL & USDC{% endif %}
+                        {% if crypto == 'bitcoin' %}Bitcoin Network | BTC Only{% endif %}
+                        {% if crypto == 'tron' %}TRC-20 Network | TRX & USDT{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let web3;
+        let connectedAccount = null;
+
+        // MetaMask Connection
+        async function connectMetaMask() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    web3 = new Web3(window.ethereum);
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    connectedAccount = accounts[0];
+                    
+                    document.getElementById('connectedWallet').textContent = connectedAccount;
+                    document.getElementById('walletInfo').classList.remove('hidden');
+                    document.getElementById('web3PayButton').disabled = false;
+                    
+                    // Send wallet address to backend
+                    await fetch('/connect_wallet', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ wallet_address: connectedAccount })
+                    });
+                    
+                    alert('✅ Wallet connected successfully!');
+                } catch (error) {
+                    console.error('MetaMask connection failed:', error);
+                    alert('❌ Failed to connect wallet. Please try again.');
+                }
+            } else {
+                alert('❌ MetaMask not detected. Please install MetaMask.');
+            }
+        }
+
+        // WalletConnect Connection
+        async function connectWalletConnect() {
+            try {
+                const provider = new WalletConnectProvider.default({
+                    infuraId: "YOUR_INFURA_ID" // Replace with your Infura ID
+                });
+                
+                await provider.enable();
+                web3 = new Web3(provider);
+                const accounts = await web3.eth.getAccounts();
+                connectedAccount = accounts[0];
+                
+                document.getElementById('connectedWallet').textContent = connectedAccount;
+                document.getElementById('walletInfo').classList.remove('hidden');
+                document.getElementById('web3PayButton').disabled = false;
+                
+                // Send wallet address to backend
+                await fetch('/connect_wallet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ wallet_address: connectedAccount })
+                });
+                
+                alert('✅ Wallet connected successfully!');
+            } catch (error) {
+                console.error('WalletConnect failed:', error);
+                alert('❌ Failed to connect wallet. Please try again.');
+            }
+        }
+
+        // Web3 Payment Processing
+        document.getElementById('web3PaymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!connectedAccount) {
+                alert('Please connect your wallet first');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('web3Amount').value);
+            const cryptoType = document.getElementById('web3CryptoType').value;
+            
+            if (amount < 50) {
+                alert('Minimum deposit is $50');
+                return;
+            }
+
+            try {
+                const statusDiv = document.getElementById('paymentStatus');
+                statusDiv.className = 'mt-4 p-4 bg-blue-500 text-white rounded-lg';
+                statusDiv.innerHTML = '🔄 Processing payment...';
+
+                // For demo purposes - in real implementation, you would:
+                // 1. Get the recipient address from your backend
+                // 2. Send the transaction
+                // 3. Verify the transaction
+                
+                // Simulate transaction (replace with actual transaction)
+                setTimeout(async () => {
+                    // In real implementation, you would:
+                    // const tx = await web3.eth.sendTransaction({
+                    //     from: connectedAccount,
+                    //     to: 'YOUR_WALLET_ADDRESS',
+                    //     value: web3.utils.toWei(amount.toString(), 'ether')
+                    // });
+                    
+                    // For demo, we'll simulate a successful transaction
+                    const mockTxHash = '0x' + Math.random().toString(16).substr(2, 64);
+                    
+                    // Verify payment with backend
+                    const verifyResponse = await fetch('/verify_payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            transaction_hash: mockTxHash,
+                            amount: amount,
+                            crypto_type: cryptoType
+                        })
+                    });
+
+                    const verifyData = await verifyResponse.json();
+                    
+                    if (verifyData.success) {
+                        statusDiv.className = 'mt-4 p-4 bg-green-500 text-white rounded-lg';
+                        statusDiv.innerHTML = `✅ Payment verified! ${verifyData.message}`;
+                        alert(`🎉 Payment successful! ${verifyData.message}`);
+                        window.location.href = '/dashboard';
+                    } else {
+                        statusDiv.className = 'mt-4 p-4 bg-red-500 text-white rounded-lg';
+                        statusDiv.innerHTML = `❌ Payment failed: ${verifyData.error}`;
+                    }
+                }, 3000);
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                const statusDiv = document.getElementById('paymentStatus');
+                statusDiv.className = 'mt-4 p-4 bg-red-500 text-white rounded-lg';
+                statusDiv.innerHTML = '❌ Payment failed. Please try again.';
+            }
+        });
+
+        // Check if MetaMask is installed
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', function(accounts) {
+                if (accounts.length === 0) {
+                    // User disconnected their wallet
+                    connectedAccount = null;
+                    document.getElementById('walletInfo').classList.add('hidden');
+                    document.getElementById('web3PayButton').disabled = true;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

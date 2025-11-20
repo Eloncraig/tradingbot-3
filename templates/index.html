@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingView AI Bot - Join Thousands Earning Daily Profits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <link rel="icon" href="https://tradingview.com/favicon.ico">
+    <style>
+        .profit-glow {
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+        }
+        .live-pulse {
+            animation: livePulse 2s infinite;
+        }
+        @keyframes livePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .testimonial-slide {
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Hero Section -->
+    <div class="gradient-bg py-20">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center items-center mb-6">
+                <img src="https://tradingview.com/favicon.ico" alt="TradingView" class="h-16 w-16 mr-4">
+                <h1 class="text-5xl font-bold">TradingView AI Trading Bot</h1>
+            </div>
+            <p class="text-2xl mb-8">Join 12,847+ Traders Earning Up To <span class="font-bold text-green-300">300% Returns</span> Monthly</p>
+            
+            <!-- Live Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-8">
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-green-400">$2.4M+</div>
+                    <div class="text-sm">Total Profits Paid</div>
+                </div>
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-400">12,847</div>
+                    <div class="text-sm">Active Traders</div>
+                </div>
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-yellow-400">94%</div>
+                    <div class="text-sm">Success Rate</div>
+                </div>
+                <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-400">24/7</div>
+                    <div class="text-sm">Trading</div>
+                </div>
+            </div>
+
+            <div id="countdown" class="text-3xl font-bold text-white mb-8 live-pulse"></div>
+
+            <div class="space-y-4 max-w-2xl mx-auto">
+                <a href="/register" class="block bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg text-xl transition duration-300 transform hover:scale-105">
+                    🚀 Start Trading Now - $50 Minimum
+                </a>
+                <p class="text-sm text-gray-200">No experience required • Fully automated • 24/7 support</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Profit Chart -->
+    <div class="container mx-auto px-4 py-16">
+        <div class="bg-gray-800 rounded-2xl p-8 profit-glow">
+            <h2 class="text-3xl font-bold text-center mb-8">Live Profit Performance</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <canvas id="liveProfitChart" height="300"></canvas>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-gray-700 rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-4">💡 Why Our AI Bot Wins</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li>✅ Advanced machine learning algorithms</li>
+                            <li>✅ Real-time market analysis</li>
+                            <li>✅ 0.01s execution speed</li>
+                            <li>✅ 94% accuracy rate</li>
+                            <li>✅ 24/7 automated trading</li>
+                            <li>✅ $50 minimum investment</li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-900 bg-opacity-50 rounded-xl p-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-400">$50 → $150</div>
+                            <div class="text-sm">Average First Week Returns</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Testimonials -->
+    <div class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold text-center mb-12">🔥 Real Traders, Real Profits</h2>
+        
+        <!-- Live Testimonials Feed -->
+        <div class="bg-gray-800 rounded-2xl p-8 mb-12">
+            <div class="flex items-center justify-center mb-6">
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-3"></div>
+                <h3 class="text-2xl font-bold">Live Profit Alerts</h3>
+            </div>
+            <div id="liveTestimonials" class="space-y-4 h-64 overflow-y-auto">
+                <!-- Dynamic testimonials will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Featured Success Stories -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div class="bg-gradient-to-br from-green-500 to-blue-600 p-6 rounded-2xl transform hover:scale-105 transition duration-300">
+                <div class="text-3xl font-bold mb-2">$12,847</div>
+                <p class="text-lg mb-4">"Started with $500, made $12,847 in 3 weeks! This bot is a game-changer!"</p>
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-green-600 mr-3">JD</div>
+                    <div>
+                        <div class="font-semibold">John Davidson</div>
+                        <div class="text-sm opacity-75">Former Uber Driver</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-500 to-pink-600 p-6 rounded-2xl transform hover:scale-105 transition duration-300">
+                <div class="text-3xl font-bold mb-2">$8,562</div>
+                <p class="text-lg mb-4">"As a single mom, this extra income changed our lives. $200 turned into $8,562!"</p>
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-purple-600 mr-3">SM</div>
+                    <div>
+                        <div class="font-semibold">Sarah Martinez</div>
+                        <div class="text-sm opacity-75">Teacher</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-yellow-500 to-red-600 p-6 rounded-2xl transform hover:scale-105 transition duration-300">
+                <div class="text-3xl font-bold mb-2">$23,451</div>
+                <p class="text-lg mb-4">"Retired early thanks to this bot! Making more now than my corporate job paid."</p>
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-yellow-600 mr-3">MR</div>
+                    <div>
+                        <div class="font-semibold">Mike Rodriguez</div>
+                        <div class="text-sm opacity-75">Software Engineer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold text-center mb-12">🎯 Start Earning in 3 Simple Steps</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">1</div>
+                <h3 class="text-xl font-bold mb-4">Sign Up & Deposit</h3>
+                <p class="text-gray-300">Create your account and deposit $50+ to unlock the trading bot</p>
+            </div>
+            <div class="text-center">
+                <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">2</div>
+                <h3 class="text-xl font-bold mb-4">Receive Unlock Code</h3>
+                <p class="text-gray-300">Get your unique activation code from our support team</p>
+            </div>
+            <div class="text-center">
+                <div class="w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">3</div>
+                <h3 class="text-xl font-bold mb-4">Start Earning</h3>
+                <p class="text-gray-300">Activate the bot and watch your profits grow 24/7</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investment Tiers -->
+    <div class="container mx-auto px-4 py-16">
+        <h2 class="text-4xl font-bold text-center mb-12">💰 Choose Your Success Tier</h2>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 max-w-6xl mx-auto">
+            <div class="bg-green-900 bg-opacity-50 p-6 rounded-2xl text-center transform hover:scale-105 transition duration-300">
+                <div class="font-bold text-green-400 text-lg">Starter</div>
+                <div class="text-3xl my-4">$50+</div>
+                <div class="text-sm mb-4">Up to 100% Returns</div>
+                <div class="text-xs text-gray-400">Perfect for beginners</div>
+            </div>
+            <div class="bg-orange-900 bg-opacity-50 p-6 rounded-2xl text-center transform hover:scale-105 transition duration-300">
+                <div class="font-bold text-orange-400 text-lg">Bronze</div>
+                <div class="text-3xl my-4">$100+</div>
+                <div class="text-sm mb-4">Up to 150% Returns</div>
+                <div class="text-xs text-gray-400">Enhanced profits</div>
+            </div>
+            <div class="bg-gray-600 p-6 rounded-2xl text-center transform hover:scale-105 transition duration-300">
+                <div class="font-bold text-gray-300 text-lg">Silver</div>
+                <div class="text-3xl my-4">$200+</div>
+                <div class="text-sm mb-4">Up to 200% Returns</div>
+                <div class="text-xs text-gray-400">Premium signals</div>
+            </div>
+            <div class="bg-yellow-900 bg-opacity-50 p-6 rounded-2xl text-center transform hover:scale-105 transition duration-300">
+                <div class="font-bold text-yellow-400 text-lg">Gold</div>
+                <div class="text-3xl my-4">$500+</div>
+                <div class="text-sm mb-4">Up to 250% Returns</div>
+                <div class="text-xs text-gray-400">VIP access</div>
+            </div>
+            <div class="bg-purple-900 bg-opacity-50 p-6 rounded-2xl text-center transform hover:scale-105 transition duration-300">
+                <div class="font-bold text-purple-400 text-lg">VIP</div>
+                <div class="text-3xl my-4">$1000+</div>
+                <div class="text-sm mb-4">Up to 300% Returns</div>
+                <div class="text-xs text-gray-400">Maximum profits</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final CTA -->
+    <div class="gradient-bg py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold mb-6">Ready to Transform Your Financial Future?</h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto">Join thousands of successful traders who started with just $50 and are now earning life-changing profits.</p>
+            
+            <div class="space-y-4 max-w-md mx-auto">
+                <a href="/register" class="block bg-white text-purple-600 font-bold py-4 px-8 rounded-lg text-xl transition duration-300 transform hover:scale-105">
+                    🚀 Start Your Journey Now
+                </a>
+                <p class="text-sm text-gray-200">60-second registration • $50 minimum • 24/7 support</p>
+            </div>
+        </div>
+    </div>
+             <!-- Footer -->
+    <footer class="bg-gray-900 py-8 border-t border-gray-800">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="/faq" class="text-gray-400 hover:text-white transition duration-200">FAQ</a>    
+                <a href="/login" class="text-gray-400 hover:text-white transition duration-200">Login</a>   
+                <a href="/register" class="text-gray-400 hover:text-white transition duration-200">Register</a>   
+                <a href="/chat" class="text-ye 1low-200 hover: text-white mx-4">Live Support</a>
+            </div>
+            <p class="text-gray-500 text-sm">
+                © 2025 TradingView AI Bot. All rights reserved. Trading involves risk.
+            </p>
+        </div>
+    </footer>
+    <script>
+        // Countdown timer
+        const end = new Date().getTime() + 6 * 60 * 60 * 1000; // 6 hours
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = end - now;
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            document.getElementById('countdown').innerHTML = 
+                `⏰ <span class="text-yellow-300">LIMITED BONUS:</span> Join within ${hours}h ${minutes}m ${seconds}s & Get +10% Bonus!`;
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // Live profit chart
+        const profitCtx = document.getElementById('liveProfitChart').getContext('2d');
+        const profitChart = new Chart(profitCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                datasets: [{
+                    label: 'Average User Portfolio ($)',
+                    data: [50, 125, 280, 450, 720, 1100],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 4,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#fff',
+                            font: { size: 14 }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: '$50 to $1,100 in 6 Weeks - Average Results',
+                        color: '#fff',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#fff' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#fff' }
+                    }
+                }
+            }
+        });
+
+        // Real-time testimonials data
+        const testimonials = [
+            { name: "Alex Chen", amount: 347, time: "2 minutes ago", initial: 100 },
+            { name: "Maria Garcia", amount: 1280, time: "5 minutes ago", initial: 500 },
+            { name: "James Wilson", amount: 562, time: "8 minutes ago", initial: 200 },
+            { name: "Sarah Johnson", amount: 2150, time: "12 minutes ago", initial: 1000 },
+            { name: "Mike Brown", amount: 789, time: "15 minutes ago", initial: 300 },
+            { name: "Lisa Davis", amount: 1345, time: "18 minutes ago", initial: 600 },
+            { name: "David Miller", amount: 2980, time: "22 minutes ago", initial: 1200 },
+            { name: "Emily Taylor", amount: 645, time: "25 minutes ago", initial: 250 }
+        ];
+
+        const locations = ["New York", "London", "Tokyo", "Sydney", "Dubai", "Toronto", "Berlin", "Singapore"];
+        const professions = ["Student", "Teacher", "Engineer", "Nurse", "Entrepreneur", "Retired", "Freelancer", "Manager"];
+
+        function getRandomTestimonial() {
+            const testimonial = testimonials[Math.floor(Math.random() * testimonials.length)];
+            const location = locations[Math.floor(Math.random() * locations.length)];
+            const profession = professions[Math.floor(Math.random() * professions.length)];
+            
+            return {
+                ...testimonial,
+                location,
+                profession,
+                profit: testimonial.amount - testimonial.initial
+            };
+        }
+
+        // Update live testimonials
+        function updateLiveTestimonials() {
+            const container = document.getElementById('liveTestimonials');
+            const testimonial = getRandomTestimonial();
+            
+            const testimonialDiv = document.createElement('div');
+            testimonialDiv.className = 'bg-gray-700 p-4 rounded-lg testimonial-slide';
+            testimonialDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold mr-3">
+                            ${testimonial.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                            <div class="font-semibold">${testimonial.name}</div>
+                            <div class="text-xs text-gray-400">${testimonial.profession} • ${testimonial.location}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-green-400 font-bold">+$${testimonial.profit}</div>
+                        <div class="text-xs text-gray-400">${testimonial.time}</div>
+                    </div>
+                </div>
+                <div class="text-sm">
+                    "Just made $${testimonial.profit} profit from $${testimonial.initial} deposit! This is incredible! 🚀"
+                </div>
+            `;
+            
+            // Add new testimonial at the top
+            container.insertBefore(testimonialDiv, container.firstChild);
+            
+            // Limit to 8 testimonials
+            if (container.children.length > 8) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Start live testimonials
+        setInterval(updateLiveTestimonials, 8000);
+        
+        // Add initial testimonials
+        for (let i = 0; i < 4; i++) {
+            updateLiveTestimonials();
+        }
+
+        // Animate numbers
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                obj.innerHTML = value.toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Animate stats on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                animateValue('totalProfits', 0, 2400000, 2000);
+                animateValue('activeTraders', 0, 12847, 2000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
